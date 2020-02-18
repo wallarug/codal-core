@@ -26,9 +26,9 @@ MPU6500::MPU6500(I2C& _i2c, Pin &_int1, CoordinateSpace &coordinateSpace, uint16
 
 int MPU6500::configure()
 {
-    i2c.writeRegister(address, 0x6B, 0x80);
+    i2c.writeRegister(address, 0x6B, 0x00);
     fiber_sleep(20);
-    i2c.writeRegister(address, 0x6B, 0x00);  /* PWR_MGMT_1    -- SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference) */
+    i2c.writeRegister(address, 0x6B, 0x01);  /* PWR_MGMT_1    -- SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference) */
     
     // Configure Gyro and Thermometer
     // Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz, respectively; 
@@ -36,12 +36,13 @@ int MPU6500::configure()
     // be higher than 1 / 0.0059 = 170 Hz
     // DLPF_CFG = bits 2:0 = 011; this limits the sample rate to 1000 Hz for both
     // With the MPU9250, it is possible to get gyro sample rates of 32 kHz (!), 8 kHz, or 1 kHz
-    i2c.writeRegister(address, 0x1A, 0x03);
-    
-    i2c.writeRegister(address, 0x1B, 0x18);  /* GYRO_CONFIG   -- FS_SEL = 3: Full scale set to 2000 deg/sec */
-    i2c.writeRegister(address, 0x19, 32);
+    i2c.writeRegister(address, 0x1A, 0x03); // _MPU6500_CONFIG
+    i2c.writeRegister(address, 0x19, 0x04); // _MPU6500_SMPLRT_DIV
+    i2c.writeRegister(address, 0x1B, 0x08); // _MPU6500_GYRO_CONFIG (check)
+    i2c.writeRegister(address, 0x1C, 0x00); // _MPU6500_ACCEL_CONFIG (check)
+    i2c.writeRegister(address, 0x1D, 0x03); // _MPU6500_ACCEL_CONFIG2 (check)
 
-    i2c.writeRegister(address, 0x37, 0x30); // enable interrupt latch; also enable clear of pin by any read
+    i2c.writeRegister(address, 0x37, 0x12); // enable interrupt latch; also enable clear of pin by any read
     i2c.writeRegister(address, 0x38, 0x01); // enable raw data interrupt
 
     DMESG("MPU6500 init %x", whoAmI());
